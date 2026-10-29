@@ -1,0 +1,3441 @@
+{
+  "uid": "azure-app-service-overview",
+  "title": "Azure / App Service / Overview",
+  "description": "Azure Monitor platform metrics for one App Service web app (microsoft.web/sites) and its App Service plan (microsoft.web/serverfarms), plus a Resource Graph inventory of all web apps in the subscription. Function apps on dedicated plans use the same microsoft.web/sites namespace. Fleet health across all apps (Azure Monitor Baseline Alerts KPIs from Log Analytics) is in the bundled 'Azure / Infrastructure / Apps Monitoring' dashboard (link at the top). Managed by Terraform (azure-managed-grafana, dashboards/app-service/app-service-overview.json): edit the file, not the dashboard in the UI; changes made in Grafana are overwritten on the next apply.",
+  "tags": [
+    "azure",
+    "app-service",
+    "terraform"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "timezone": "browser",
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": [
+        "azure-infra-monitor"
+      ],
+      "asDropdown": true,
+      "title": "Azure Infra Monitoring (fleet health)",
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": "",
+      "url": ""
+    },
+    {
+      "asDropdown": false,
+      "includeVars": false,
+      "tags": [],
+      "type": "link",
+      "title": "Azure portal",
+      "url": "https://portal.azure.com/#resource/subscriptions/${sub}/resourceGroups/${rg}/providers/Microsoft.Web/sites/${resource}/overview",
+      "icon": "external link",
+      "keepTime": false,
+      "targetBlank": true,
+      "tooltip": "Open the selected resource in the Azure portal"
+    },
+    {
+      "asDropdown": false,
+      "includeVars": false,
+      "tags": [],
+      "type": "link",
+      "title": "Diagnose and solve problems",
+      "url": "https://portal.azure.com/#resource/subscriptions/${sub}/resourceGroups/${rg}/providers/Microsoft.Web/sites/${resource}/troubleshoot",
+      "icon": "external link",
+      "keepTime": false,
+      "targetBlank": true,
+      "tooltip": "Azure's built-in diagnostics for the selected resource"
+    },
+    {
+      "asDropdown": false,
+      "includeVars": false,
+      "tags": [],
+      "type": "link",
+      "title": "Operations overview",
+      "url": "/d/azure-operations-overview?var-sub=${sub}",
+      "icon": "dashboard",
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": "State, alerts and changes across all covered resources"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "ds",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "grafana-azure-monitor-datasource",
+        "current": {},
+        "hide": 0
+      },
+      {
+        "name": "sub",
+        "label": "Subscription",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Subscriptions"
+        },
+        "refresh": 1,
+        "hide": 0
+      },
+      {
+        "name": "rg",
+        "label": "Resource group",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Groups",
+          "subscription": "$sub"
+        },
+        "refresh": 1,
+        "hide": 0
+      },
+      {
+        "name": "resource",
+        "label": "Web app",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Names",
+          "subscription": "$sub",
+          "resourceGroup": "$rg",
+          "namespace": "microsoft.web/sites"
+        },
+        "refresh": 1,
+        "hide": 0,
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "name": "plan",
+        "label": "App Service plan",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Names",
+          "subscription": "$sub",
+          "resourceGroup": "$rg",
+          "namespace": "microsoft.web/serverfarms"
+        },
+        "refresh": 1,
+        "hide": 0,
+        "multi": false,
+        "includeAll": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 33,
+      "type": "row",
+      "title": "Troubleshooting - $resource",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "description": "Start here when something looks wrong: is the resource running, has an alert fired, what changed? Resource Graph data; it lags a few minutes behind Azure. Grafana's identity needs read access (Monitoring Reader) on the resource."
+    },
+    {
+      "id": 34,
+      "type": "stat",
+      "title": "State",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Current state from Azure Resource Manager. Green: running/ready. Red: stopped, deallocated, failed or disabled. Orange: anything else, e.g. updating or starting.",
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ 'Microsoft.Web/sites' and resourceGroup =~ '$rg' and name =~ '$resource'\n| project ['State'] = tostring(properties.state), ['Availability'] = tostring(properties.availabilityState)",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "/^(ready|running|succeeded|normal|vm running)$/i",
+                "result": {
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "/(stop|deallocat|fail|disabled|error|limited)/i",
+                "result": {
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "empty",
+                "result": {
+                  "text": "-",
+                  "color": "text",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 35,
+      "type": "stat",
+      "title": "Open alerts",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Azure Monitor alerts fired on this resource and not closed (alerts are kept 30 days). History across resources: the bundled Azure / Alert Consumption dashboard.",
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 5,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "alertsmanagementresources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend e = properties.essentials\n| where tolower(tostring(e.targetResource)) == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.Web/sites/$resource')\n| where tostring(e.monitorCondition) == 'Fired' and tostring(e.alertState) != 'Closed'\n| summarize ['Open alerts'] = count()",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 36,
+      "type": "stat",
+      "title": "Changes (time range)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Resource Manager changes to this resource and its child resources in the time range (Resource Graph change history, kept 14 days). Details on the right.",
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 8,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resourcechanges\n| extend target = tolower(tostring(properties.targetResourceId))\n| where (target == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.Web/sites/$resource') or target startswith strcat(tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.Web/sites/$resource'), '/'))\n| where todatetime(properties.changeAttributes.timestamp) between ($__timeFrom() .. $__timeTo())\n| summarize Changes = count()",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 37,
+      "type": "table",
+      "title": "What changed",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Latest Resource Manager changes in the time range: who changed what, with which operation, and which properties. A change just before a problem started is the first suspect.",
+      "gridPos": {
+        "h": 6,
+        "w": 13,
+        "x": 11,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resourcechanges\n| extend target = tolower(tostring(properties.targetResourceId))\n| where (target == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.Web/sites/$resource') or target startswith strcat(tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.Web/sites/$resource'), '/'))\n| where todatetime(properties.changeAttributes.timestamp) between ($__timeFrom() .. $__timeTo())\n| project Time = todatetime(properties.changeAttributes.timestamp),\n          Change = tostring(properties.changeType),\n          Resource = iff(target == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.Web/sites/$resource'), '(this resource)', substring(target, strlen(tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.Web/sites/$resource')) + 1)),\n          ['Changed by'] = tostring(properties.changeAttributes.changedBy),\n          Operation = tostring(properties.changeAttributes.operation),\n          Properties = strcat_array(bag_keys(properties.changes), ', ')\n| order by Time desc\n| take 50",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Change"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Time",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Summary - $resource (plan: $plan)",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Requests",
+      "description": "Total requests (Requests, Total) to the selected web app over the time range, all status codes. Includes requests to the SCM (Kudu) site. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Requests",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "noValue": "0",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "HTTP 5xx",
+      "description": "Requests answered with 5xx (Http5xx, Total) over the time range. Only requests that reached the workers are counted; front-end failures are not. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 3,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http5xx",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "noValue": "0",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "HTTP 4xx",
+      "description": "Requests answered with 4xx (Http4xx, Total) over the time range. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 6,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http4xx",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100
+              }
+            ]
+          },
+          "noValue": "0",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Avg response time",
+      "description": "Mean of HttpResponseTime (Average) over the time range. HttpResponseTime replaces the deprecated AverageResponseTime. Thresholds 1 s / 3 s are a starting point. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 9,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "HttpResponseTime",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Health check status",
+      "description": "Last value of HealthCheckStatus (Average). 100 means every instance passes the health check path; lower values mean instances were deemed unhealthy. Empty when no Health check path is configured. The metric only supports PT5M/PT1H/P1D grains. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 12,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "HealthCheckStatus",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}",
+            "allowedTimeGrainsMs": [
+              300000,
+              3600000,
+              86400000
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 100
+              }
+            ]
+          },
+          "noValue": "not configured",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Plan CPU",
+      "description": "Last value of the App Service plan CpuPercentage (Average across instances). App Service plan metrics exist only for Basic, Standard, Premium and Isolated tiers. Pick the plan with the 'App Service plan' variable (same resource group as $rg).",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 15,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$plan",
+                "metricNamespace": "microsoft.web/serverfarms"
+              }
+            ],
+            "metricNamespace": "microsoft.web/serverfarms",
+            "metricName": "CpuPercentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Plan memory",
+      "description": "Last value of the App Service plan MemoryPercentage (Average across instances). App Service plan metrics exist only for Basic, Standard, Premium and Isolated tiers. Pick the plan with the 'App Service plan' variable (same resource group as $rg).",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 18,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$plan",
+                "metricNamespace": "microsoft.web/serverfarms"
+              }
+            ],
+            "metricNamespace": "microsoft.web/serverfarms",
+            "metricName": "MemoryPercentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "decimals": 1,
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Plan HTTP queue",
+      "description": "Last value of the App Service plan HttpQueueLength (Average): requests waiting to be served. A growing queue means the plan is overloaded. App Service plan metrics exist only for Basic, Standard, Premium and Isolated tiers. Pick the plan with the 'App Service plan' variable (same resource group as $rg).",
+      "gridPos": {
+        "h": 5,
+        "w": 3,
+        "x": 21,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$plan",
+                "metricNamespace": "microsoft.web/serverfarms"
+              }
+            ],
+            "metricNamespace": "microsoft.web/serverfarms",
+            "metricName": "HttpQueueLength",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "title": "Inventory - all web apps in the subscription",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      }
+    },
+    {
+      "id": 11,
+      "type": "table",
+      "title": "Web apps in subscription",
+      "description": "Azure Resource Graph inventory of every microsoft.web/sites resource in the selected subscription (web apps, and Function / Logic apps that share the namespace; Function apps on dedicated plans report the same metrics as web apps). 'runtime' comes from linuxFxVersion (Linux) or windowsFxVersion (Windows containers); it is empty for classic Windows stacks, whose runtime is not exposed in Resource Graph. Deployment slots (microsoft.web/sites/slots) are not listed. Click a name to load its metrics below (the plan is preselected only if it is in the same resource group). Fleet health across all apps: 'Azure / Infrastructure / Apps Monitoring'.",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ 'microsoft.web/sites'\n| extend sp = properties.siteProperties.properties\n| extend linuxFx = iff(tostring(sp[0].name) =~ 'LinuxFxVersion', tostring(sp[0].value), iff(tostring(sp[1].name) =~ 'LinuxFxVersion', tostring(sp[1].value), iff(tostring(sp[2].name) =~ 'LinuxFxVersion', tostring(sp[2].value), '')))\n| extend windowsFx = iff(tostring(sp[0].name) =~ 'WindowsFxVersion', tostring(sp[0].value), iff(tostring(sp[1].name) =~ 'WindowsFxVersion', tostring(sp[1].value), iff(tostring(sp[2].name) =~ 'WindowsFxVersion', tostring(sp[2].value), '')))\n| extend runtime = coalesce(tostring(properties.siteConfig.linuxFxVersion), linuxFx, tostring(properties.siteConfig.windowsFxVersion), windowsFx)\n| extend farm = split(tostring(properties.serverFarmId), '/')\n| project name, resourceGroup, location, kind, state = tostring(properties.state), plan = tostring(farm[8]), planResourceGroup = tostring(farm[4]), planSku = tostring(properties.sku), httpsOnly = tobool(properties.httpsOnly), runtime, defaultHostName = tostring(properties.defaultHostName)\n| order by name asc",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show metrics for this app",
+                    "url": "/d/azure-app-service-overview/?${ds:queryparam}&${sub:queryparam}&var-rg=${__data.fields.resourceGroup}&var-resource=${__value.raw}&var-plan=${__data.fields.plan}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "state"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Running": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Stopped": {
+                        "color": "orange",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "httpsOnly"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "true": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "yes"
+                      },
+                      "false": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "no"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "defaultHostName"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open site",
+                    "url": "https://${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "count"
+          ]
+        },
+        "sortBy": [
+          {
+            "displayName": "name",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "HTTP - $resource",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "description": "Platform HTTP metrics of the selected web app. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too."
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Requests by instance",
+      "description": "Requests (Total) per time grain, split by the Instance dimension. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Requests",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "HTTP status codes",
+      "description": "Http2xx, Http3xx, Http4xx and Http5xx (Total) per time grain, all instances. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http2xx",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "2xx"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http3xx",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "3xx"
+          }
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http4xx",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "4xx"
+          }
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http5xx",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "5xx"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "3xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "4xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Response time by instance",
+      "description": "HttpResponseTime (Average) split by Instance. Uses the current HttpResponseTime metric, not the deprecated AverageResponseTime. Dashed lines at 1 s / 3 s. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "HttpResponseTime",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "HTTP 5xx by instance",
+      "description": "Http5xx (Total) per time grain, split by Instance. Anything above 0 deserves a look. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http5xx",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Health check status by instance",
+      "description": "HealthCheckStatus (Average) split by Instance; 100 = healthy. Only the PT5M/PT1H/P1D grains exist for this metric. Empty when no Health check path is configured. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "HealthCheckStatus",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20",
+            "allowedTimeGrainsMs": [
+              300000,
+              3600000,
+              86400000
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 100
+              }
+            ]
+          },
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "HTTP 4xx detail",
+      "description": "Http401, Http403, Http404 and Http406 (Total) per time grain, all instances. Compare with the Http4xx total in 'HTTP status codes'. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 48
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http401",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "401"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http403",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "403"
+          }
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http404",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "404"
+          }
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "Http406",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "406"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Data in / out",
+      "description": "BytesReceived (Data in) and BytesSent (Data out), Total bytes per time grain, all instances. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 48
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "BytesReceived",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "Data in"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "BytesSent",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "Data out"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decbytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Data in"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Data out"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "row",
+      "title": "Process resources - $resource",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "description": "Per-app process counters of the selected web app. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too."
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "CPU time by instance",
+      "description": "CpuTime (Total): CPU seconds consumed by the app per time grain, split by Instance. Plan-level CPU percentage is in the App Service plan section. Not reported for Function apps.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 57
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "CpuTime",
+            "aggregation": "Total",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Memory working set by instance",
+      "description": "MemoryWorkingSet (Average) split by Instance. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 57
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.web/sites"
+              }
+            ],
+            "metricNamespace": "microsoft.web/sites",
+            "metricName": "MemoryWorkingSet",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 28,
+      "type": "row",
+      "title": "App Service plan - $plan",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 65
+      },
+      "description": "Metrics of the App Service plan selected in the 'App Service plan' variable. App Service plan metrics exist only for Basic, Standard, Premium and Isolated tiers. Pick the plan with the 'App Service plan' variable (same resource group as $rg)."
+    },
+    {
+      "id": 29,
+      "type": "timeseries",
+      "title": "Plan CPU percentage by instance",
+      "description": "CpuPercentage (Average) of the plan, split by Instance. Dashed line at 80 %. App Service plan metrics exist only for Basic, Standard, Premium and Isolated tiers. Pick the plan with the 'App Service plan' variable (same resource group as $rg).",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 66
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$plan",
+                "metricNamespace": "microsoft.web/serverfarms"
+              }
+            ],
+            "metricNamespace": "microsoft.web/serverfarms",
+            "metricName": "CpuPercentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Plan memory percentage by instance",
+      "description": "MemoryPercentage (Average) of the plan, split by Instance. Dashed line at 80 %. App Service plan metrics exist only for Basic, Standard, Premium and Isolated tiers. Pick the plan with the 'App Service plan' variable (same resource group as $rg).",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 66
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$plan",
+                "metricNamespace": "microsoft.web/serverfarms"
+              }
+            ],
+            "metricNamespace": "microsoft.web/serverfarms",
+            "metricName": "MemoryPercentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "Instance",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "20"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Plan HTTP / disk queue length",
+      "description": "HttpQueueLength and DiskQueueLength (Average) of the plan, all instances. High HTTP queue = plan under heavy load; high disk queue = excessive disk I/O. App Service plan metrics exist only for Basic, Standard, Premium and Isolated tiers. Pick the plan with the 'App Service plan' variable (same resource group as $rg).",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 66
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$plan",
+                "metricNamespace": "microsoft.web/serverfarms"
+              }
+            ],
+            "metricNamespace": "microsoft.web/serverfarms",
+            "metricName": "HttpQueueLength",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "HTTP queue"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$plan",
+                "metricNamespace": "microsoft.web/serverfarms"
+              }
+            ],
+            "metricNamespace": "microsoft.web/serverfarms",
+            "metricName": "DiskQueueLength",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "Disk queue"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 32,
+      "type": "row",
+      "title": "Windows apps only - $resource",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 74
+      },
+      "description": "Windows-only process counters (application queue, private bytes, connections, threads, handles). Linux web apps don't emit them and Azure Monitor rejects the queries, so this row is collapsed: it only queries when expanded.",
+      "panels": [
+        {
+          "id": 18,
+          "type": "timeseries",
+          "title": "Requests in application queue by instance",
+          "description": "RequestsInApplicationQueue (Average) split by Instance. Also one of the Azure Monitor Baseline Alerts KPIs used by 'Azure / Infrastructure / Apps Monitoring'. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 75
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "$ds"
+              },
+              "queryType": "Azure Monitor",
+              "subscription": "$sub",
+              "azureMonitor": {
+                "resources": [
+                  {
+                    "subscription": "$sub",
+                    "resourceGroup": "$rg",
+                    "resourceName": "$resource",
+                    "metricNamespace": "microsoft.web/sites"
+                  }
+                ],
+                "metricNamespace": "microsoft.web/sites",
+                "metricName": "RequestsInApplicationQueue",
+                "aggregation": "Average",
+                "timeGrain": "auto",
+                "dimensionFilters": [
+                  {
+                    "dimension": "Instance",
+                    "operator": "eq",
+                    "filters": []
+                  }
+                ],
+                "alias": "{{dimensionvalue}}",
+                "top": "20"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisSoftMin": 0,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "mean",
+                "max",
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 24,
+          "type": "timeseries",
+          "title": "Private bytes by instance",
+          "description": "PrivateBytes (Average) split by Instance: memory the app process allocated that cannot be shared. Also an Azure Monitor Baseline Alerts KPI. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 75
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "$ds"
+              },
+              "queryType": "Azure Monitor",
+              "subscription": "$sub",
+              "azureMonitor": {
+                "resources": [
+                  {
+                    "subscription": "$sub",
+                    "resourceGroup": "$rg",
+                    "resourceName": "$resource",
+                    "metricNamespace": "microsoft.web/sites"
+                  }
+                ],
+                "metricNamespace": "microsoft.web/sites",
+                "metricName": "PrivateBytes",
+                "aggregation": "Average",
+                "timeGrain": "auto",
+                "dimensionFilters": [
+                  {
+                    "dimension": "Instance",
+                    "operator": "eq",
+                    "filters": []
+                  }
+                ],
+                "alias": "{{dimensionvalue}}",
+                "top": "20"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisSoftMin": 0,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "mean",
+                "max",
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 25,
+          "type": "timeseries",
+          "title": "Connections by instance",
+          "description": "AppConnections (Average): bound sockets in the sandbox, split by Instance. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 83
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "$ds"
+              },
+              "queryType": "Azure Monitor",
+              "subscription": "$sub",
+              "azureMonitor": {
+                "resources": [
+                  {
+                    "subscription": "$sub",
+                    "resourceGroup": "$rg",
+                    "resourceName": "$resource",
+                    "metricNamespace": "microsoft.web/sites"
+                  }
+                ],
+                "metricNamespace": "microsoft.web/sites",
+                "metricName": "AppConnections",
+                "aggregation": "Average",
+                "timeGrain": "auto",
+                "dimensionFilters": [
+                  {
+                    "dimension": "Instance",
+                    "operator": "eq",
+                    "filters": []
+                  }
+                ],
+                "alias": "{{dimensionvalue}}",
+                "top": "20"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisSoftMin": 0,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "mean",
+                "max",
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 26,
+          "type": "timeseries",
+          "title": "Threads by instance",
+          "description": "Threads (Average): active threads in the app process, split by Instance. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 83
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "$ds"
+              },
+              "queryType": "Azure Monitor",
+              "subscription": "$sub",
+              "azureMonitor": {
+                "resources": [
+                  {
+                    "subscription": "$sub",
+                    "resourceGroup": "$rg",
+                    "resourceName": "$resource",
+                    "metricNamespace": "microsoft.web/sites"
+                  }
+                ],
+                "metricNamespace": "microsoft.web/sites",
+                "metricName": "Threads",
+                "aggregation": "Average",
+                "timeGrain": "auto",
+                "dimensionFilters": [
+                  {
+                    "dimension": "Instance",
+                    "operator": "eq",
+                    "filters": []
+                  }
+                ],
+                "alias": "{{dimensionvalue}}",
+                "top": "20"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisSoftMin": 0,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "mean",
+                "max",
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 27,
+          "type": "timeseries",
+          "title": "Handles by instance",
+          "description": "Handles (Average): open handles of the app process, split by Instance. Function apps on dedicated (App Service / Premium) plans also emit these metrics under microsoft.web/sites, so they can be picked in the Web app variable too.",
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 83
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-azure-monitor-datasource",
+                "uid": "$ds"
+              },
+              "queryType": "Azure Monitor",
+              "subscription": "$sub",
+              "azureMonitor": {
+                "resources": [
+                  {
+                    "subscription": "$sub",
+                    "resourceGroup": "$rg",
+                    "resourceName": "$resource",
+                    "metricNamespace": "microsoft.web/sites"
+                  }
+                ],
+                "metricNamespace": "microsoft.web/sites",
+                "metricName": "Handles",
+                "aggregation": "Average",
+                "timeGrain": "auto",
+                "dimensionFilters": [
+                  {
+                    "dimension": "Instance",
+                    "operator": "eq",
+                    "filters": []
+                  }
+                ],
+                "alias": "{{dimensionvalue}}",
+                "top": "20"
+              }
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisSoftMin": 0,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true,
+              "calcs": [
+                "mean",
+                "max",
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

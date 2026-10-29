@@ -1,0 +1,11 @@
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+# Lock files are committed for stacks/ only; reusable modules must not pin provider builds.
+modules/**/.terraform.lock.hcl

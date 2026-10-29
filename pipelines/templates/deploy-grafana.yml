@@ -1,0 +1,102 @@
+# Deploys the two Grafana stacks in order:
+#   1. stacks/01-platform: the Azure Managed Grafana workspace and the RBAC on it (azapi)
+#   2. stacks/02-content:  folders, data sources and dashboards inside Grafana (grafana provider)
+# They are separate Terraform states because the grafana provider needs the workspace URL before it can plan.
+#
+# Stages: validate -> plan_platform -> apply_platform -> plan_content -> apply_content.
+# Pull requests stop after the plans. Each apply stage runs only when its plan has changes, after the environment approval.
+parameters:
+  - name: environment
+    type: string
+  - name: projectName
+    type: string
+  - name: serviceConnection
+    type: string
+  - name: rootDirectory
+    type: string
+    default: azure-managed-grafana
+  - name: allowDestroy
+    type: boolean
+    default: false
+
+stages:
+  # No Azure credentials: backends are disabled and the tests use mocked providers.
+  - stage: validate
+    displayName: Validate
+    jobs:
+      - job: validate
+        displayName: fmt, validate, test
+        steps:
+          - checkout: self
+
+          - template: terraform-install.yml
+
+          - bash: terraform fmt -check -diff -recursive .
+            displayName: terraform fmt -check
+            workingDirectory: $(Build.SourcesDirectory)/${{ parameters.rootDirectory }}
+
+          - bash: |
+              set -euo pipefail
+              terraform init -backend=false -input=false
+              terraform test -test-directory=tests/unit
+            displayName: Test modules/grafana-content
+            workingDirectory: $(Build.SourcesDirectory)/${{ parameters.rootDirectory }}/modules/grafana-content
+
+          # The tests render every file under dashboards/.
+          - bash: |
+              set -euo pipefail
+              terraform init -backend=false -input=false
+              terraform validate
+              terraform test
+            displayName: Validate and test stacks/02-content
+            workingDirectory: $(Build.SourcesDirectory)/${{ parameters.rootDirectory }}/stacks/02-content
+
+          # terraform init downloads the AVM module from GitHub at the commit pinned in main.tf, so the agent needs
+          # outbound access to github.com. The module's own tests run in its repository.
+          - bash: |
+              set -euo pipefail
+              terraform init -backend=false -input=false
+              terraform validate
+            displayName: Validate stacks/01-platform
+            workingDirectory: $(Build.SourcesDirectory)/${{ parameters.rootDirectory }}/stacks/01-platform
+
+  - template: terraform-stack.yml
+    parameters:
+      name: platform
+      displayName: Grafana workspace
+      planDependsOn: [validate]
+      environment: ${{ parameters.environment }}
+      serviceConnection: ${{ parameters.serviceConnection }}
+      stackDirectory: ${{ parameters.rootDirectory }}/stacks/01-platform
+      stateKey: $(Build.Repository.Name)/irix_grafana_platform_${{ parameters.projectName }}_${{ parameters.environment }}.tfstate
+      grafanaAuth: false
+      allowDestroy: ${{ parameters.allowDestroy }}
+
+  - template: terraform-stack.yml
+    parameters:
+      name: content
+      displayName: Grafana dashboards
+      # Plan against the workspace as this run left it. apply_platform is Skipped both when it has nothing to do and when
+      # its approval times out; only the first case may continue, i.e. no platform changes or a pull request.
+      planDependsOn: [plan_platform, apply_platform]
+      planCondition: >-
+        and(
+          succeeded('plan_platform'),
+          or(
+            in(dependencies.apply_platform.result, 'Succeeded', 'SucceededWithIssues'),
+            and(
+              eq(dependencies.apply_platform.result, 'Skipped'),
+              or(
+                ne(dependencies.plan_platform.outputs['plan.tf.hasChanges'], 'true'),
+                eq(variables['Build.Reason'], 'PullRequest')
+              )
+            )
+          )
+        )
+      environment: ${{ parameters.environment }}
+      serviceConnection: ${{ parameters.serviceConnection }}
+      stackDirectory: ${{ parameters.rootDirectory }}/stacks/02-content
+      stateKey: $(Build.Repository.Name)/irix_grafana_content_${{ parameters.projectName }}_${{ parameters.environment }}.tfstate
+      grafanaAuth: true
+      authErrorRetries: 10
+      allowDestroy: ${{ parameters.allowDestroy }}

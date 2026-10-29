@@ -1,0 +1,37 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - azure-managed-grafana
+
+# Pull requests run the validate and plan stages only (the apply stages skip on Build.Reason PullRequest).
+# This block is honoured for GitHub and Bitbucket Cloud. Azure Repos ignores it: add a build validation branch policy on main.
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - azure-managed-grafana
+
+parameters:
+  - name: allowDestroy
+    displayName: Allow plans that delete or replace resources
+    type: boolean
+    default: false
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - template: variables/grafana-variables-nonprod.yml
+
+stages:
+  - template: templates/deploy-grafana.yml
+    parameters:
+      environment: ${{ variables.environment }}
+      projectName: ${{ variables.project_name }}
+      serviceConnection: ${{ variables.azure_service_connection }}
+      allowDestroy: ${{ parameters.allowDestroy }}

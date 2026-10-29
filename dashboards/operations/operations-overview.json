@@ -1,0 +1,2076 @@
+{
+  "uid": "azure-operations-overview",
+  "title": "Azure / Operations / Overview",
+  "description": "Operator landing page across the services covered by the other dashboards (PostgreSQL, Redis, virtual machines, App Service, AKS): what needs attention now, open alerts, what changed, Azure Resource Health, Azure service health and Advisor. Azure Resource Graph only, so it needs no agent and no Log Analytics. Managed by Terraform (azure-managed-grafana): edit dashboards/operations/operations-overview.json, not the dashboard in the UI. Changes made in Grafana are overwritten on the next apply.",
+  "tags": [
+    "azure",
+    "operations",
+    "terraform"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "5m",
+  "timezone": "browser",
+  "links": [
+    {
+      "type": "link",
+      "title": "PostgreSQL",
+      "url": "/d/azure-postgresql-overview",
+      "icon": "dashboard",
+      "tooltip": "Open the PostgreSQL dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "type": "link",
+      "title": "Managed Redis",
+      "url": "/d/azure-managed-redis-overview",
+      "icon": "dashboard",
+      "tooltip": "Open the Managed Redis dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "type": "link",
+      "title": "Cache for Redis",
+      "url": "/d/azure-cache-for-redis-overview",
+      "icon": "dashboard",
+      "tooltip": "Open the Cache for Redis dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "type": "link",
+      "title": "Virtual machines",
+      "url": "/d/azure-virtual-machines-overview",
+      "icon": "dashboard",
+      "tooltip": "Open the Virtual machines dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "type": "link",
+      "title": "App Service",
+      "url": "/d/azure-app-service-overview",
+      "icon": "dashboard",
+      "tooltip": "Open the App Service dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "type": "link",
+      "title": "AKS (platform metrics)",
+      "url": "/d/azure-aks-platform-metrics",
+      "icon": "dashboard",
+      "tooltip": "Open the AKS (platform metrics) dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "type": "link",
+      "title": "AKS (Prometheus)",
+      "url": "/d/azure-aks-prometheus",
+      "icon": "dashboard",
+      "tooltip": "Open the AKS (Prometheus) dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "type": "link",
+      "title": "Alert history",
+      "url": "/d/dyzn5SK7z",
+      "icon": "bolt",
+      "tooltip": "Bundled 'Azure / Alert Consumption' dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": []
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "ds",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "grafana-azure-monitor-datasource",
+        "current": {},
+        "hide": 0
+      },
+      {
+        "name": "sub",
+        "label": "Subscription",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Subscriptions"
+        },
+        "refresh": 1,
+        "hide": 0
+      },
+      {
+        "name": "rg",
+        "label": "Resource groups",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Groups",
+          "subscription": "$sub"
+        },
+        "refresh": 1,
+        "hide": 0,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
+        "name": "type",
+        "label": "Resource types",
+        "type": "custom",
+        "query": "PostgreSQL flexible server : microsoft.dbforpostgresql/flexibleservers, Azure Managed Redis : microsoft.cache/redisenterprise, Azure Cache for Redis : microsoft.cache/redis, Virtual machine : microsoft.compute/virtualmachines, App Service web app : microsoft.web/sites, App Service plan : microsoft.web/serverfarms, AKS cluster : microsoft.containerservice/managedclusters",
+        "hide": 0,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "PostgreSQL flexible server",
+            "value": "microsoft.dbforpostgresql/flexibleservers"
+          },
+          {
+            "selected": false,
+            "text": "Azure Managed Redis",
+            "value": "microsoft.cache/redisenterprise"
+          },
+          {
+            "selected": false,
+            "text": "Azure Cache for Redis",
+            "value": "microsoft.cache/redis"
+          },
+          {
+            "selected": false,
+            "text": "Virtual machine",
+            "value": "microsoft.compute/virtualmachines"
+          },
+          {
+            "selected": false,
+            "text": "App Service web app",
+            "value": "microsoft.web/sites"
+          },
+          {
+            "selected": false,
+            "text": "App Service plan",
+            "value": "microsoft.web/serverfarms"
+          },
+          {
+            "selected": false,
+            "text": "AKS cluster",
+            "value": "microsoft.containerservice/managedclusters"
+          }
+        ]
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Needs attention now",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "description": "Start here. Anything not green points to the row below that explains it: resource state, open alerts, Resource Health, Azure service health or a recent change."
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Resources",
+      "description": "Resources of the selected types and resource groups, and how many need attention: provisioning not Succeeded (in-progress operations such as Updating count too and clear by themselves), or a runtime state that is stopped, deallocated, disabled or failed. Details in 'Resource state'.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type in~ (${type:singlequote})\n| where resourceGroup in~ (${rg:singlequote})\n| extend provisioningState = tostring(properties.provisioningState)\n| extend runtimeState = case(\n    type =~ 'microsoft.compute/virtualmachines', replace_string(tostring(properties.extended.instanceView.powerState.code), 'PowerState/', ''),\n    type =~ 'microsoft.containerservice/managedclusters', tostring(properties.powerState.code),\n    type =~ 'microsoft.cache/redisenterprise', tostring(properties.resourceState),\n    type =~ 'microsoft.web/serverfarms', tostring(properties.status),\n    tostring(properties.state))\n| extend attention = case(\n    isnotempty(provisioningState) and provisioningState !~ 'Succeeded', strcat('provisioning: ', provisioningState),\n    runtimeState matches regex @'(?i)stop|dealloc|disabl|fail', strcat('state: ', runtimeState),\n    '')\n| summarize attention = countif(isnotempty(attention)), total = count()",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "attention"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Need attention"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "total"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Resources"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Open alerts",
+      "description": "Azure Monitor alerts still firing and not closed, on resources in the selected resource groups (any alert type: metric, log, activity log, Prometheus). 'Sev0/Sev1' turns red on any critical or error alert. Details in 'Open alerts'.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "alertsmanagementresources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend e = properties.essentials\n| where tostring(e.monitorCondition) =~ 'Fired' and tostring(e.alertState) !~ 'Closed'\n| where tostring(e.targetResourceGroup) in~ (${rg:singlequote}) or isempty(tostring(e.targetResourceGroup))\n| summarize open = count(), critical = countif(tostring(e.severity) in~ ('Sev0', 'Sev1'))",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "open"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Open"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "critical"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Sev0/Sev1"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "links": [
+        {
+          "title": "Alert history: Azure / Alert Consumption",
+          "url": "/d/dyzn5SK7z/?${sub:queryparam}&${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Resource Health",
+      "description": "Resources whose Azure Resource Health is not Available (Degraded, Unavailable or Unknown). Resource Graph only carries Resource Health for some types, mainly virtual machines; for the others use the per-service dashboards. Details in 'Resource Health'.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "healthresources\n| where type =~ 'microsoft.resourcehealth/availabilitystatuses'\n| where resourceGroup in~ (${rg:singlequote})\n| where tolower(tostring(properties.targetResourceType)) in~ (${type:singlequote})\n| summarize notAvailable = countif(tostring(properties.availabilityState) !~ 'Available'), reporting = count()",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "notAvailable"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Not available"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "reporting"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Reporting"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Azure service health",
+      "description": "Active Azure service health events (service issues, planned maintenance, health and security advisories) for the subscription. Needs read access at subscription level; with access to resource groups only it always shows 0. Details in 'Azure service health'.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 15,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "servicehealthresources\n| where type =~ 'microsoft.resourcehealth/events'\n| extend p = properties\n| where tostring(p.Status) =~ 'Active'\n| summarize active = count(), issues = countif(tostring(p.EventType) =~ 'ServiceIssue')",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "active"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Active events"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "issues"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service issues"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Changes",
+      "description": "Resource changes (create, update, delete) in the selected resource groups during the dashboard time range, any resource type. Something broke? Check 'What changed' for the changes just before it started.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resourcechanges\n| extend changeTime = todatetime(properties.changeAttributes.timestamp)\n| where changeTime between ($__timeFrom() .. $__timeTo())\n| where resourceGroup in~ (${rg:singlequote})\n| summarize changes = count(), deletes = countif(tostring(properties.changeType) =~ 'Delete')",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "changes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Changes"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "text",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deletes"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Deletes"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 7,
+      "type": "row",
+      "title": "Resource state",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "description": "Every resource of the selected types, problems first. Click a name to open its service dashboard with this resource selected, or the Azure portal."
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Resources",
+      "description": "provisioningState comes from Azure Resource Manager. runtimeState is the type's own state: VM power state, AKS power state, PostgreSQL state, Managed Redis resource state, web app state, App Service plan status. Resource Graph refreshes within minutes of a change.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type in~ (${type:singlequote})\n| where resourceGroup in~ (${rg:singlequote})\n| extend provisioningState = tostring(properties.provisioningState)\n| extend runtimeState = case(\n    type =~ 'microsoft.compute/virtualmachines', replace_string(tostring(properties.extended.instanceView.powerState.code), 'PowerState/', ''),\n    type =~ 'microsoft.containerservice/managedclusters', tostring(properties.powerState.code),\n    type =~ 'microsoft.cache/redisenterprise', tostring(properties.resourceState),\n    type =~ 'microsoft.web/serverfarms', tostring(properties.status),\n    tostring(properties.state))\n| extend attention = case(\n    isnotempty(provisioningState) and provisioningState !~ 'Succeeded', strcat('provisioning: ', provisioningState),\n    runtimeState matches regex @'(?i)stop|dealloc|disabl|fail', strcat('state: ', runtimeState),\n    '')\n| extend service = case(type =~ 'microsoft.dbforpostgresql/flexibleservers', 'PostgreSQL flexible server', type =~ 'microsoft.cache/redisenterprise', 'Azure Managed Redis', type =~ 'microsoft.cache/redis', 'Azure Cache for Redis', type =~ 'microsoft.compute/virtualmachines', 'Virtual machine', type =~ 'microsoft.web/sites', 'App Service web app', type =~ 'microsoft.web/serverfarms', 'App Service plan', type =~ 'microsoft.containerservice/managedclusters', 'AKS cluster', type)\n| extend dashUid = case(type =~ 'microsoft.dbforpostgresql/flexibleservers', 'azure-postgresql-overview', type =~ 'microsoft.cache/redisenterprise', 'azure-managed-redis-overview', type =~ 'microsoft.cache/redis', 'azure-cache-for-redis-overview', type =~ 'microsoft.compute/virtualmachines', 'azure-virtual-machines-overview', type =~ 'microsoft.web/sites', 'azure-app-service-overview', type =~ 'microsoft.web/serverfarms', 'azure-app-service-overview', type =~ 'microsoft.containerservice/managedclusters', 'azure-aks-platform-metrics', '')\n| extend size = coalesce(tostring(properties.hardwareProfile.vmSize), tostring(sku.name), tostring(properties.sku))\n| extend farm = split(tostring(properties.serverFarmId), '/')\n| extend resourceParam = iff(type =~ 'microsoft.web/serverfarms', '', name)\n| extend planParam = case(type =~ 'microsoft.web/serverfarms', name, type =~ 'microsoft.web/sites', tostring(farm[8]), '')\n| extend sortKey = iff(isempty(attention), 1, 0)\n| project name, service, resourceGroup, location, size, provisioningState, runtimeState, attention, id, subscriptionId, dashUid, resourceParam, planParam, sortKey\n| order by sortKey asc, service asc, name asc\n| project-away sortKey",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the service dashboard for this resource",
+                    "url": "/d/${__data.fields.dashUid}/?${ds:queryparam}&var-sub=${__data.fields.subscriptionId}&var-rg=${__data.fields.resourceGroup}&var-resource=${__data.fields.resourceParam}&var-plan=${__data.fields.planParam}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Open in the Azure portal",
+                    "url": "https://portal.azure.com/#resource${__data.fields.id}/overview",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "provisioningState"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "(?i)^succeeded$",
+                      "result": {
+                        "color": "green",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "(?i).*fail.*",
+                      "result": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".+",
+                      "result": {
+                        "color": "orange",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "runtimeState"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "(?i)^(running|ready|succeeded)$",
+                      "result": {
+                        "color": "green",
+                        "index": 0
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": "(?i).*(stop|dealloc|disabl|fail).*",
+                      "result": {
+                        "color": "red",
+                        "index": 1
+                      }
+                    }
+                  },
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".+",
+                      "result": {
+                        "color": "orange",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "attention"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "regex",
+                    "options": {
+                      "pattern": ".+",
+                      "result": {
+                        "color": "red",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "subscriptionId"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dashUid"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "resourceParam"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "planParam"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "Open alerts",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "description": "Alerts still firing, most severe first. Open the target resource to investigate; acknowledge or close the alert in the Azure portal. History and trends: 'Azure / Alert Consumption'."
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Open alerts",
+      "description": "Fired and not closed. alertState New means nobody has acknowledged it yet. Alerts without a target resource group (for example subscription-level activity log alerts) are always listed.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "alertsmanagementresources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend e = properties.essentials\n| where tostring(e.monitorCondition) =~ 'Fired' and tostring(e.alertState) !~ 'Closed'\n| where tostring(e.targetResourceGroup) in~ (${rg:singlequote}) or isempty(tostring(e.targetResourceGroup))\n| project severity = tostring(e.severity), fired = todatetime(e.startDateTime), alertRule = name, target = tostring(e.targetResourceName), targetType = tostring(e.targetResourceType), resourceGroup = tostring(e.targetResourceGroup), monitorService = tostring(e.monitorService), signalType = tostring(e.signalType), condition = tostring(e.monitorCondition), alertState = tostring(e.alertState), targetId = tostring(e.targetResource)\n| order by severity asc, fired desc",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "severity"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Sev0": {
+                        "color": "dark-red",
+                        "index": 0,
+                        "text": "Sev0 critical"
+                      },
+                      "Sev1": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Sev1 error"
+                      },
+                      "Sev2": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "Sev2 warning"
+                      },
+                      "Sev3": {
+                        "color": "blue",
+                        "index": 3,
+                        "text": "Sev3 informational"
+                      },
+                      "Sev4": {
+                        "color": "text",
+                        "index": 4,
+                        "text": "Sev4 verbose"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "alertState"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "New": {
+                        "color": "orange",
+                        "index": 0
+                      },
+                      "Acknowledged": {
+                        "color": "blue",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "target"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the target resource in the Azure portal",
+                    "url": "https://portal.azure.com/#resource${__data.fields.targetId}/overview",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "targetId"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "links": [
+        {
+          "title": "Alert history: Azure / Alert Consumption",
+          "url": "/d/dyzn5SK7z/?${sub:queryparam}&${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "What changed",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "description": "Most incidents follow a change. Narrow the time range to just before the problem started and look for updates or deletes on the affected resource, its network, identity or data collection rules."
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Changes per hour",
+      "description": "Resource changes per hour in the selected resource groups, by change type, from Azure Resource Graph change history (all resource types, retained for 14 days).",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resourcechanges\n| extend changeTime = todatetime(properties.changeAttributes.timestamp), changeType = tostring(properties.changeType)\n| where changeTime between ($__timeFrom() .. $__timeTo())\n| where resourceGroup in~ (${rg:singlequote})\n| summarize Create = countif(changeType =~ 'Create'), Update = countif(changeType =~ 'Update'), Delete = countif(changeType =~ 'Delete') by changeTime = bin(changeTime, 1h)\n| order by changeTime asc",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "min": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "barAlignment": 0,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "never"
+          },
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Create"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Update"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Delete"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "type": "table",
+      "title": "Changes",
+      "description": "Newest first, up to 500. changedBy is the user, service principal or Azure service that made the change; clientType tells how (Azure portal, CLI, ARM template, Terraform via the REST API...). changedProperties lists the property paths that changed (empty for creates and deletes).",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resourcechanges\n| extend ca = properties.changeAttributes\n| extend changeTime = todatetime(ca.timestamp)\n| where changeTime between ($__timeFrom() .. $__timeTo())\n| where resourceGroup in~ (${rg:singlequote})\n| extend targetId = tostring(properties.targetResourceId)\n| project changeTime, changeType = tostring(properties.changeType), resource = tostring(split(targetId, '/')[8]), resourceType = tostring(properties.targetResourceType), resourceGroup, changedBy = tostring(ca.changedBy), changedByType = tostring(ca.changedByType), clientType = tostring(ca.clientType), operation = tostring(ca.operation), propertiesChanged = toint(ca.changesCount), changedProperties = strcat_array(bag_keys(properties.changes), ', '), targetId\n| order by changeTime desc\n| take 500",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "changeType"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Create": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Update": {
+                        "color": "blue",
+                        "index": 1
+                      },
+                      "Delete": {
+                        "color": "red",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "resource"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the resource in the Azure portal",
+                    "url": "https://portal.azure.com/#resource${__data.fields.targetId}/overview",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "changeTime"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "targetId"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "Resource Health",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "description": "Azure's own view of whether a resource is available, and why not (platform or user initiated). Resource Graph carries it for some types only, mainly virtual machines."
+    },
+    {
+      "id": 15,
+      "type": "table",
+      "title": "Resource Health",
+      "description": "Not available first. reason tells whether the cause is on Azure's side (PlatformInitiated) or yours (UserInitiated, for example a stop or a resize).",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "healthresources\n| where type =~ 'microsoft.resourcehealth/availabilitystatuses'\n| where resourceGroup in~ (${rg:singlequote})\n| where tolower(tostring(properties.targetResourceType)) in~ (${type:singlequote})\n| extend p = properties, targetId = tostring(properties.targetResourceId)\n| project resource = tostring(split(targetId, '/')[8]), availabilityState = tostring(p.availabilityState), reason = tostring(p.reasonType), summary = tostring(p.summary), since = todatetime(coalesce(p.occuredTime, p.occurredTime)), resourceType = tostring(p.targetResourceType), resourceGroup, targetId\n| extend sortKey = case(availabilityState =~ 'Unavailable', 0, availabilityState =~ 'Degraded', 1, availabilityState =~ 'Unknown', 2, 3)\n| order by sortKey asc, resource asc\n| project-away sortKey",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "availabilityState"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Available": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Degraded": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "Unavailable": {
+                        "color": "red",
+                        "index": 2
+                      },
+                      "Unknown": {
+                        "color": "text",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "resource"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the resource in the Azure portal",
+                    "url": "https://portal.azure.com/#resource${__data.fields.targetId}/overview",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "targetId"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 16,
+      "type": "row",
+      "title": "Azure service health",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "description": "Active Azure-side events for this subscription. If a service issue matches your symptoms, follow its updates instead of debugging your own resources."
+    },
+    {
+      "id": 17,
+      "type": "table",
+      "title": "Active service health events",
+      "description": "Service issues, planned maintenance and advisories that are still active. Needs read access at subscription level.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "servicehealthresources\n| where type =~ 'microsoft.resourcehealth/events'\n| extend p = properties\n| where tostring(p.Status) =~ 'Active'\n| project eventType = tostring(p.EventType), title = tostring(p.Title), status = tostring(p.Status), level = tostring(p.Level), trackingId = tostring(p.TrackingId), impactStart = tostring(p.ImpactStartTime), lastUpdate = tostring(p.LastUpdateTime)\n| order by eventType asc, lastUpdate desc",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "eventType"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "ServiceIssue": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "PlannedMaintenance": {
+                        "color": "blue",
+                        "index": 1
+                      },
+                      "HealthAdvisory": {
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "SecurityAdvisory": {
+                        "color": "orange",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    },
+    {
+      "id": 18,
+      "type": "row",
+      "title": "Advisor",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 55
+      },
+      "description": "Azure Advisor recommendations for the selected resources, high impact first. Reliability (HighAvailability) and performance items often explain recurring incidents."
+    },
+    {
+      "id": 19,
+      "type": "table",
+      "title": "Advisor recommendations",
+      "description": "From Azure Advisor, refreshed by Azure about once a day.",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "advisorresources\n| where type =~ 'microsoft.advisor/recommendations'\n| where resourceGroup in~ (${rg:singlequote})\n| where tolower(tostring(properties.impactedField)) in~ (${type:singlequote})\n| extend p = properties\n| project impact = tostring(p.impact), category = tostring(p.category), problem = tostring(p.shortDescription.problem), solution = tostring(p.shortDescription.solution), resource = tostring(p.impactedValue), resourceType = tolower(tostring(p.impactedField)), resourceGroup, lastUpdated = todatetime(p.lastUpdated), targetId = tostring(p.resourceMetadata.resourceId)\n| extend sortKey = case(impact =~ 'High', 0, impact =~ 'Medium', 1, 2)\n| order by sortKey asc, category asc, resource asc\n| project-away sortKey",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "impact"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "High": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "Medium": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "Low": {
+                        "color": "text",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "resource"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the resource in the Azure portal",
+                    "url": "https://portal.azure.com/#resource${__data.fields.targetId}/overview",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "targetId"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "links": []
+    }
+  ]
+}

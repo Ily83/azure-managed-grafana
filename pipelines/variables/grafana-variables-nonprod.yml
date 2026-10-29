@@ -1,0 +1,24 @@
+# Pipeline-level settings for nonprod. Terraform inputs live in stacks/*/env/nonprod.tfvars;
+# values computed by Terraform (folder IDs, workspace IDs, ...) cannot be pipeline variables.
+variables:
+  - name: environment
+    value: nonprod
+
+  - name: project_name
+    value: pushservice
+
+  # TODO: Azure Resource Manager service connection (workload identity federation recommended).
+  # Its service principal needs: Contributor + Role Based Access Control Administrator on the Grafana resource group,
+  # Role Based Access Control Administrator on the Monitor workspace / Monitoring Reader scopes, and
+  # Storage Blob Data Contributor on the state container.
+  - name: azure_service_connection
+    value: "<service-connection-name>"
+
+  - name: terraform_version
+    value: "1.16.5"
+
+  - name: backend_storage_account_name
+    value: axso4prod4appl4tim4sa
+
+  - name: backend_container_name
+    value: terraform-irix-modules

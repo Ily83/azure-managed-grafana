@@ -1,0 +1,2207 @@
+{
+  "uid": "azure-aks-prometheus",
+  "title": "Azure / AKS / Cluster (Prometheus)",
+  "description": "AKS landing page from Azure Monitor managed service for Prometheus (default minimal-ingestion metrics only; no recording rules required). Drill down with the links to the built-in 'Managed Prometheus' dashboards (from Azure/prometheus-collector) that Azure Managed Grafana installs when an Azure Monitor workspace is linked; they are not managed here. Managed by Terraform (azure-managed-grafana): edit dashboards/aks/aks-cluster-prometheus.json.tftpl, not the dashboard in the UI. Changes made in Grafana are overwritten on the next apply.",
+  "tags": [
+    "azure",
+    "aks",
+    "kubernetes",
+    "terraform"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "links": [
+    {
+      "title": "Kubernetes / Compute Resources / Cluster",
+      "type": "link",
+      "url": "/d/fd0cac08a3f34e2994cf904627836738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Kubernetes / Compute Resources / Namespace (Pods)",
+      "type": "link",
+      "url": "/d/6385dfe4b7f54710aa1f748b34ba6738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Kubernetes / Compute Resources / Namespace (Workloads)",
+      "type": "link",
+      "url": "/d/2745ce2b859a40f7990ff6b85d736738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Kubernetes / Compute Resources / Node (Pods)",
+      "type": "link",
+      "url": "/d/7857fbef7cd44823a509c7dfbd166738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Kubernetes / Compute Resources / Pod",
+      "type": "link",
+      "url": "/d/ac3253a2c4a149d68ccd0a58c7ab6738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Kubernetes / Compute Resources / Workload",
+      "type": "link",
+      "url": "/d/3151475894614845ba54456099696738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Kubernetes / Kubelet",
+      "type": "link",
+      "url": "/d/184244a28b3d478e9c0de82def316738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Node Exporter / Nodes",
+      "type": "link",
+      "url": "/d/D3pVs6738?var-datasource=$ds&var-cluster=$cluster",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Built-in Managed Prometheus dashboard (Azure/prometheus-collector)"
+    },
+    {
+      "title": "Azure / AKS / Cluster (platform metrics)",
+      "type": "link",
+      "url": "/d/azure-aks-platform-metrics",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "Azure Monitor platform metrics, for clusters without managed Prometheus"
+    },
+    {
+      "title": "Operations overview",
+      "type": "link",
+      "url": "/d/azure-operations-overview",
+      "icon": "dashboard",
+      "keepTime": true,
+      "includeVars": false,
+      "targetBlank": false,
+      "asDropdown": false,
+      "tags": [],
+      "tooltip": "State, alerts and changes across all covered Azure resources"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "ds",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "${prometheus_datasource_type}",
+        "current": {},
+        "hide": 0,
+        "refresh": 1,
+        "regex": "",
+        "includeAll": false,
+        "multi": false
+      },
+      {
+        "name": "cluster",
+        "label": "Cluster",
+        "type": "query",
+        "datasource": {
+          "type": "${prometheus_datasource_type}",
+          "uid": "$ds"
+        },
+        "query": {
+          "query": "label_values(kube_node_info, cluster)",
+          "refId": "v"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": false,
+        "multi": false,
+        "current": {},
+        "hide": 0
+      },
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": {
+          "type": "${prometheus_datasource_type}",
+          "uid": "$ds"
+        },
+        "query": {
+          "query": "label_values(kube_namespace_status_phase{cluster=\"$cluster\"}, namespace)",
+          "refId": "v"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "includeAll": true,
+        "allValue": ".+",
+        "multi": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Cluster health",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Nodes",
+      "description": "Nodes known to kube-state-metrics (kube_node_info).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "count(kube_node_info{cluster=\"$cluster\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Node (Pods)",
+          "url": "/d/7857fbef7cd44823a509c7dfbd166738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Nodes not ready",
+      "description": "Nodes whose Ready condition is false or unknown.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(kube_node_status_condition{cluster=\"$cluster\", condition=\"Ready\", status!=\"true\"}) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Nodes cordoned",
+      "description": "Nodes marked unschedulable (cordoned, e.g. during upgrades).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(kube_node_spec_unschedulable{cluster=\"$cluster\"}) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "CPU utilisation",
+      "description": "Average non-idle CPU across all nodes (node-exporter).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\", cluster=\"$cluster\"}[$__rate_interval]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.85
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Cluster",
+          "url": "/d/fd0cac08a3f34e2994cf904627836738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Memory utilisation",
+      "description": "1 - MemAvailable / MemTotal across all nodes (node-exporter).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "1 - sum(sum(node_memory_MemAvailable_bytes{cluster=\"$cluster\"} or (node_memory_Buffers_bytes{cluster=\"$cluster\"} + node_memory_Cached_bytes{cluster=\"$cluster\"} + node_memory_MemFree_bytes{cluster=\"$cluster\"} + node_memory_Slab_bytes{cluster=\"$cluster\"})) by (cluster)) / sum(node_memory_MemTotal_bytes{cluster=\"$cluster\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.85
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Cluster",
+          "url": "/d/fd0cac08a3f34e2994cf904627836738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "CPU requests / allocatable",
+      "description": "CPU requested by Pending and Running pods, divided by allocatable CPU.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(sum by (namespace, pod, cluster) (max by (namespace, pod, container, cluster) (kube_pod_container_resource_requests{resource=\"cpu\", cluster=\"$cluster\"}) * on (namespace, pod, cluster) group_left() max by (namespace, pod, cluster) (kube_pod_status_phase{phase=~\"Pending|Running\", cluster=\"$cluster\"} == 1))) / sum(kube_node_status_allocatable{resource=\"cpu\", cluster=\"$cluster\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Cluster",
+          "url": "/d/fd0cac08a3f34e2994cf904627836738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Memory requests / allocatable",
+      "description": "Memory requested by Pending and Running pods, divided by allocatable memory.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 5
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(sum by (namespace, pod, cluster) (max by (namespace, pod, container, cluster) (kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\"}) * on (namespace, pod, cluster) group_left() max by (namespace, pod, cluster) (kube_pod_status_phase{phase=~\"Pending|Running\", cluster=\"$cluster\"} == 1))) / sum(kube_node_status_allocatable{resource=\"memory\", cluster=\"$cluster\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Cluster",
+          "url": "/d/fd0cac08a3f34e2994cf904627836738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Running pods",
+      "description": "Pods in phase Running in the selected namespaces.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 5
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\", phase=\"Running\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Pending pods",
+      "description": "Pods in phase Pending (unscheduled or pulling images).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 5
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\", phase=\"Pending\"}) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Failed pods",
+      "description": "Pods in phase Failed that still exist in the API.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 5
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\", phase=\"Failed\"}) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Container restarts",
+      "description": "Container restarts in the selected time range.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 5
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(round(increase(kube_pod_container_status_restarts_total{cluster=\"$cluster\", namespace=~\"$namespace\"}[$__range]))) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "OOMKilled containers",
+      "description": "Containers (of existing pods) whose last termination reason is OOMKilled.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 5
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "count(kube_pod_container_status_last_terminated_reason{cluster=\"$cluster\", namespace=~\"$namespace\", reason=\"OOMKilled\"} == 1) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "Nodes",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Node CPU utilisation",
+      "description": "Non-idle CPU per node (node-exporter; instance = node name).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "1 - avg by (instance) (rate(node_cpu_seconds_total{cluster=\"$cluster\", mode=\"idle\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Node Exporter / Nodes",
+          "url": "/d/D3pVs6738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "Node memory utilisation",
+      "description": "1 - MemAvailable / MemTotal per node (node-exporter).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "1 - sum by (instance) (node_memory_MemAvailable_bytes{cluster=\"$cluster\"}) / sum by (instance) (node_memory_MemTotal_bytes{cluster=\"$cluster\"})",
+          "legendFormat": "{{instance}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Node Exporter / Nodes",
+          "url": "/d/D3pVs6738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "type": "row",
+      "title": "Capacity",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "panels": []
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "CPU: usage vs requests vs allocatable",
+      "description": "CPU cores: container usage (cAdvisor), requests of Pending/Running pods, node allocatable.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", container!=\"\", image!=\"\"}[$__rate_interval]))",
+          "legendFormat": "usage",
+          "range": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(sum by (namespace, pod, cluster) (max by (namespace, pod, container, cluster) (kube_pod_container_resource_requests{resource=\"cpu\", cluster=\"$cluster\"}) * on (namespace, pod, cluster) group_left() max by (namespace, pod, cluster) (kube_pod_status_phase{phase=~\"Pending|Running\", cluster=\"$cluster\"} == 1)))",
+          "legendFormat": "requests",
+          "range": true
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(kube_node_status_allocatable{resource=\"cpu\", cluster=\"$cluster\"})",
+          "legendFormat": "allocatable",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Cluster",
+          "url": "/d/fd0cac08a3f34e2994cf904627836738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Memory: working set vs requests vs allocatable",
+      "description": "Memory: container working set (cAdvisor), requests of Pending/Running pods, node allocatable.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(container_memory_working_set_bytes{cluster=\"$cluster\", container!=\"\", image!=\"\"})",
+          "legendFormat": "working set",
+          "range": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(sum by (namespace, pod, cluster) (max by (namespace, pod, container, cluster) (kube_pod_container_resource_requests{resource=\"memory\", cluster=\"$cluster\"}) * on (namespace, pod, cluster) group_left() max by (namespace, pod, cluster) (kube_pod_status_phase{phase=~\"Pending|Running\", cluster=\"$cluster\"} == 1)))",
+          "legendFormat": "requests",
+          "range": true
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum(kube_node_status_allocatable{resource=\"memory\", cluster=\"$cluster\"})",
+          "legendFormat": "allocatable",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Cluster",
+          "url": "/d/fd0cac08a3f34e2994cf904627836738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "row",
+      "title": "Namespaces",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 27
+      },
+      "panels": []
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Top 10 namespaces by CPU",
+      "description": "CPU cores used per namespace (cAdvisor).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "topk(10, sum by (namespace) (rate(container_cpu_usage_seconds_total{cluster=\"$cluster\", namespace=~\"$namespace\", container!=\"\", image!=\"\"}[$__rate_interval])))",
+          "legendFormat": "{{namespace}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Namespace (Pods)",
+          "url": "/d/6385dfe4b7f54710aa1f748b34ba6738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Top 10 namespaces by memory (working set)",
+      "description": "Container working set memory per namespace (cAdvisor).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "topk(10, sum by (namespace) (container_memory_working_set_bytes{cluster=\"$cluster\", namespace=~\"$namespace\", container!=\"\", image!=\"\"}))",
+          "legendFormat": "{{namespace}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Namespace (Pods)",
+          "url": "/d/6385dfe4b7f54710aa1f748b34ba6738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Pods by phase",
+      "description": "Pods per phase in the selected namespaces (kube-state-metrics).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum by (phase) (kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\"})",
+          "legendFormat": "{{phase}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Container restarts by namespace",
+      "description": "Container restarts per namespace and interval.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum by (namespace) (increase(kube_pod_container_status_restarts_total{cluster=\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval])) > 0",
+          "legendFormat": "{{namespace}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 25,
+      "type": "row",
+      "title": "Problems",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "panels": []
+    },
+    {
+      "id": 26,
+      "type": "table",
+      "title": "Pods not ready",
+      "description": "Pending, Running or Unknown pods whose Ready condition is false (completed pods excluded).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum by (namespace, pod) (kube_pod_status_ready{cluster=\"$cluster\", namespace=~\"$namespace\", condition=\"false\"} * on (cluster, namespace, pod) group_left() max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=\"$cluster\", namespace=~\"$namespace\", phase=~\"Pending|Running|Unknown\"} == 1)) > 0",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "not ready",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "not ready"
+            }
+          }
+        }
+      ],
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Pod",
+          "url": "/d/ac3253a2c4a149d68ccd0a58c7ab6738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "type": "table",
+      "title": "Containers waiting",
+      "description": "Containers in a waiting state, by reason (CrashLoopBackOff, ImagePullBackOff, ...).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum by (namespace, pod, container, reason) (kube_pod_container_status_waiting_reason{cluster=\"$cluster\", namespace=~\"$namespace\"}) > 0",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "containers",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "containers"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "type": "table",
+      "title": "Top restarting containers (time range)",
+      "description": "Containers with the most restarts in the selected time range.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 53
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "topk(20, sum by (namespace, pod, container) (round(increase(kube_pod_container_status_restarts_total{cluster=\"$cluster\", namespace=~\"$namespace\"}[$__range]))) > 0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "restarts",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "restarts"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "type": "table",
+      "title": "OOMKilled containers",
+      "description": "Containers whose last termination reason is OOMKilled, with their restarts in the selected time range.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 53
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum by (namespace, pod, container) (round(increase(kube_pod_container_status_restarts_total{cluster=\"$cluster\", namespace=~\"$namespace\"}[$__range]))) * on (namespace, pod, container) group_left() (sum by (namespace, pod, container) (kube_pod_container_status_last_terminated_reason{cluster=\"$cluster\", namespace=~\"$namespace\", reason=\"OOMKilled\"}) > 0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "restarts in range",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "restarts in range"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "type": "row",
+      "title": "Storage and network",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 61
+      },
+      "panels": []
+    },
+    {
+      "id": 31,
+      "type": "bargauge",
+      "title": "PVC usage (top 15)",
+      "description": "kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes per PersistentVolumeClaim.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 62
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "topk(15, max by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{cluster=\"$cluster\", namespace=~\"$namespace\"} / kubelet_volume_stats_capacity_bytes{cluster=\"$cluster\", namespace=~\"$namespace\"}))",
+          "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "auto",
+        "sizing": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "links": []
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Pod network receive by namespace",
+      "description": "Bytes received per namespace (cAdvisor; host-network pods report node traffic).",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 62
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum by (namespace) (rate(container_network_receive_bytes_total{cluster=\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval]))",
+          "legendFormat": "{{namespace}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Namespace (Pods)",
+          "url": "/d/6385dfe4b7f54710aa1f748b34ba6738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "Pod network transmit by namespace",
+      "description": "Bytes transmitted per namespace (cAdvisor; host-network pods report node traffic).",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 62
+      },
+      "datasource": {
+        "type": "${prometheus_datasource_type}",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "${prometheus_datasource_type}",
+            "uid": "$ds"
+          },
+          "expr": "sum by (namespace) (rate(container_network_transmit_bytes_total{cluster=\"$cluster\", namespace=~\"$namespace\"}[$__rate_interval]))",
+          "legendFormat": "{{namespace}}",
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "links": [
+        {
+          "title": "Open Kubernetes / Compute Resources / Namespace (Pods)",
+          "url": "/d/6385dfe4b7f54710aa1f748b34ba6738?var-datasource=$ds&var-cluster=$cluster&$${__url_time_range}",
+          "targetBlank": false
+        }
+      ]
+    }
+  ]
+}

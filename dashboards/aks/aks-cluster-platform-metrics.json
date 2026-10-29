@@ -1,0 +1,3174 @@
+{
+  "uid": "azure-aks-platform-metrics",
+  "title": "Azure / AKS / Cluster (platform metrics)",
+  "description": "AKS cluster health from Azure Monitor platform metrics (microsoft.containerservice/managedclusters) for clusters without managed Prometheus, plus an Azure Resource Graph inventory. Managed by Terraform (azure-managed-grafana): edit dashboards/aks/aks-cluster-platform-metrics.json, not the dashboard in the UI. Changes made in Grafana are overwritten on the next apply.",
+  "tags": [
+    "azure",
+    "aks",
+    "kubernetes",
+    "terraform"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "links": [
+    {
+      "title": "AKS dashboards",
+      "type": "dashboards",
+      "tags": [
+        "aks"
+      ],
+      "asDropdown": true,
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "icon": "external link",
+      "tooltip": "",
+      "url": ""
+    },
+    {
+      "asDropdown": false,
+      "includeVars": false,
+      "tags": [],
+      "type": "link",
+      "title": "Azure portal",
+      "url": "https://portal.azure.com/#resource/subscriptions/${sub}/resourceGroups/${rg}/providers/Microsoft.ContainerService/managedClusters/${resource}/overview",
+      "icon": "external link",
+      "keepTime": false,
+      "targetBlank": true,
+      "tooltip": "Open the selected resource in the Azure portal"
+    },
+    {
+      "asDropdown": false,
+      "includeVars": false,
+      "tags": [],
+      "type": "link",
+      "title": "Diagnose and solve problems",
+      "url": "https://portal.azure.com/#resource/subscriptions/${sub}/resourceGroups/${rg}/providers/Microsoft.ContainerService/managedClusters/${resource}/troubleshoot",
+      "icon": "external link",
+      "keepTime": false,
+      "targetBlank": true,
+      "tooltip": "Azure's built-in diagnostics for the selected resource"
+    },
+    {
+      "asDropdown": false,
+      "includeVars": false,
+      "tags": [],
+      "type": "link",
+      "title": "Operations overview",
+      "url": "/d/azure-operations-overview?var-sub=${sub}",
+      "icon": "dashboard",
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": "State, alerts and changes across all covered resources"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "ds",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "grafana-azure-monitor-datasource",
+        "current": {},
+        "hide": 0
+      },
+      {
+        "name": "sub",
+        "label": "Subscription",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Subscriptions"
+        },
+        "refresh": 1,
+        "hide": 0
+      },
+      {
+        "name": "rg",
+        "label": "Resource group",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Groups",
+          "subscription": "$sub"
+        },
+        "refresh": 1,
+        "hide": 0
+      },
+      {
+        "name": "resource",
+        "label": "Cluster",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "$ds"
+        },
+        "query": {
+          "refId": "A",
+          "queryType": "Azure Resource Names",
+          "subscription": "$sub",
+          "resourceGroup": "$rg",
+          "namespace": "microsoft.containerservice/managedclusters"
+        },
+        "refresh": 1,
+        "multi": false,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 36,
+      "type": "row",
+      "title": "Troubleshooting - $resource",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "description": "Start here when something looks wrong: is the resource running, has an alert fired, what changed? Resource Graph data; it lags a few minutes behind Azure. Grafana's identity needs read access (Monitoring Reader) on the resource."
+    },
+    {
+      "id": 37,
+      "type": "stat",
+      "title": "State",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Current state from Azure Resource Manager. Green: running/ready. Red: stopped, deallocated, failed or disabled. Orange: anything else, e.g. updating or starting.",
+      "gridPos": {
+        "h": 6,
+        "w": 5,
+        "x": 0,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ 'Microsoft.ContainerService/managedClusters' and resourceGroup =~ '$rg' and name =~ '$resource'\n| project ['Power state'] = tostring(properties.powerState.code), ['Provisioning'] = tostring(properties.provisioningState)",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "/^(ready|running|succeeded|normal|vm running)$/i",
+                "result": {
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "regex",
+              "options": {
+                "pattern": "/(stop|deallocat|fail|disabled|error|limited)/i",
+                "result": {
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "empty",
+                "result": {
+                  "text": "-",
+                  "color": "text",
+                  "index": 2
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 38,
+      "type": "stat",
+      "title": "Open alerts",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Azure Monitor alerts fired on this resource and not closed (alerts are kept 30 days). History across resources: the bundled Azure / Alert Consumption dashboard.",
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 5,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "alertsmanagementresources\n| where type =~ 'microsoft.alertsmanagement/alerts'\n| extend e = properties.essentials\n| where tolower(tostring(e.targetResource)) == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.ContainerService/managedClusters/$resource')\n| where tostring(e.monitorCondition) == 'Fired' and tostring(e.alertState) != 'Closed'\n| summarize ['Open alerts'] = count()",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 39,
+      "type": "stat",
+      "title": "Changes (time range)",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Resource Manager changes to this resource and its child resources in the time range (Resource Graph change history, kept 14 days). Details on the right.",
+      "gridPos": {
+        "h": 6,
+        "w": 3,
+        "x": 8,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resourcechanges\n| extend target = tolower(tostring(properties.targetResourceId))\n| where (target == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.ContainerService/managedClusters/$resource') or target startswith strcat(tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.ContainerService/managedClusters/$resource'), '/'))\n| where todatetime(properties.changeAttributes.timestamp) between ($__timeFrom() .. $__timeTo())\n| summarize Changes = count()",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "none",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 40,
+      "type": "table",
+      "title": "What changed",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "description": "Latest Resource Manager changes in the time range: who changed what, with which operation, and which properties. A change just before a problem started is the first suspect.",
+      "gridPos": {
+        "h": 6,
+        "w": 13,
+        "x": 11,
+        "y": 1
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resourcechanges\n| extend target = tolower(tostring(properties.targetResourceId))\n| where (target == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.ContainerService/managedClusters/$resource') or target startswith strcat(tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.ContainerService/managedClusters/$resource'), '/'))\n| where todatetime(properties.changeAttributes.timestamp) between ($__timeFrom() .. $__timeTo())\n| project Time = todatetime(properties.changeAttributes.timestamp),\n          Change = tostring(properties.changeType),\n          Resource = iff(target == tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.ContainerService/managedClusters/$resource'), '(this resource)', substring(target, strlen(tolower('/subscriptions/$sub/resourceGroups/$rg/providers/Microsoft.ContainerService/managedClusters/$resource')) + 1)),\n          ['Changed by'] = tostring(properties.changeAttributes.changedBy),\n          Operation = tostring(properties.changeAttributes.operation),\n          Properties = strcat_array(bag_keys(properties.changes), ', ')\n| order by Time desc\n| take 50",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": []
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Change"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "fields": ""
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Time",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Summary: $resource",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Allocatable CPU cores",
+      "description": "Total number of available CPU cores in the cluster (kube_node_status_allocatable_cpu_cores).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_node_status_allocatable_cpu_cores",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Allocatable memory",
+      "description": "Total amount of available memory in the cluster (kube_node_status_allocatable_memory_bytes).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_node_status_allocatable_memory_bytes",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Node CPU (avg)",
+      "description": "node_cpu_usage_percentage, average across nodes.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_cpu_usage_percentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Node CPU (busiest node)",
+      "description": "node_cpu_usage_percentage, maximum across nodes.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_cpu_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Node memory working set (avg)",
+      "description": "node_memory_working_set_percentage, average across nodes.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_memory_working_set_percentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Node memory working set (max)",
+      "description": "node_memory_working_set_percentage, maximum across nodes.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 8
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_memory_working_set_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Running pods",
+      "description": "kube_pod_status_phase, phase = Running. Count metric: Total aggregation at a fixed 1-minute grain (PT1M), so each point is the number of objects in that minute. Coarser grains would sum several minutes.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 12
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_pod_status_phase",
+            "aggregation": "Total",
+            "timeGrain": "PT1M",
+            "dimensionFilters": [
+              {
+                "dimension": "phase",
+                "operator": "eq",
+                "filters": [
+                  "Running"
+                ]
+              }
+            ],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Pending pods",
+      "description": "kube_pod_status_phase, phase = Pending. Count metric: Total aggregation at a fixed 1-minute grain (PT1M), so each point is the number of objects in that minute. Coarser grains would sum several minutes.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 12
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_pod_status_phase",
+            "aggregation": "Total",
+            "timeGrain": "PT1M",
+            "dimensionFilters": [
+              {
+                "dimension": "phase",
+                "operator": "eq",
+                "filters": [
+                  "Pending"
+                ]
+              }
+            ],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Failed pods",
+      "description": "kube_pod_status_phase, phase = Failed. Count metric: Total aggregation at a fixed 1-minute grain (PT1M), so each point is the number of objects in that minute. Coarser grains would sum several minutes.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 12
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_pod_status_phase",
+            "aggregation": "Total",
+            "timeGrain": "PT1M",
+            "dimensionFilters": [
+              {
+                "dimension": "phase",
+                "operator": "eq",
+                "filters": [
+                  "Failed"
+                ]
+              }
+            ],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Node disk used (max)",
+      "description": "node_disk_usage_percentage, maximum across nodes and devices.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 12
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_disk_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "API server CPU (max)",
+      "description": "apiserver_cpu_usage_percentage: maximum CPU percentage (of the current limit) used by the API server pods.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 12
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "apiserver_cpu_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "etcd database usage (max)",
+      "description": "etcd_database_usage_percentage. Microsoft recommends reviewing object counts when it stays above 50%.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 12
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "etcd_database_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "{{metric}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "row",
+      "title": "Inventory",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "panels": []
+    },
+    {
+      "id": 15,
+      "type": "table",
+      "title": "AKS clusters in subscription",
+      "description": "Azure Resource Graph: every AKS cluster in the selected subscription. nodes = sum of the agent pool `count` values.",
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Resource Graph",
+          "subscriptions": [
+            "$sub"
+          ],
+          "azureResourceGraph": {
+            "query": "resources\n| where type =~ 'microsoft.containerservice/managedclusters'\n| mv-expand pool = properties.agentPoolProfiles\n| summarize nodePools = count(), nodes = sum(toint(pool['count']))\n    by name, resourceGroup, location,\n       kubernetesVersion = tostring(properties.kubernetesVersion),\n       currentKubernetesVersion = tostring(properties.currentKubernetesVersion),\n       powerState = tostring(properties.powerState.code),\n       provisioningState = tostring(properties.provisioningState),\n       skuTier = tostring(sku.tier)\n| order by name asc",
+            "resultFormat": "table"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "powerState"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Running": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Stopped": {
+                        "color": "orange",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "name",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "type": "row",
+      "title": "Nodes",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "panels": []
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "Node CPU usage %",
+      "description": "node_cpu_usage_percentage per node.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_cpu_usage_percentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "node",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "Node memory working set %",
+      "description": "node_memory_working_set_percentage per node (can exceed 100% of allocatable).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_memory_working_set_percentage",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "node",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Node disk used % (busiest device)",
+      "description": "node_disk_usage_percentage per node, maximum across devices.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 33
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_disk_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "node",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Node conditions",
+      "description": "kube_node_status_condition: number of nodes per condition and status. Count metric: Total aggregation at a fixed 1-minute grain (PT1M), so each point is the number of objects in that minute. Coarser grains would sum several minutes.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 33
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_node_status_condition",
+            "aggregation": "Total",
+            "timeGrain": "PT1M",
+            "dimensionFilters": [
+              {
+                "dimension": "condition",
+                "operator": "eq",
+                "filters": []
+              },
+              {
+                "dimension": "status",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{condition}} = {{status}}",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Node network in",
+      "description": "node_network_in_bytes (network received bytes) per node.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 41
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_network_in_bytes",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "node",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Node network out",
+      "description": "node_network_out_bytes (network transmitted bytes) per node.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 41
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "node_network_out_bytes",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "node",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 23,
+      "type": "row",
+      "title": "Pods",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "panels": []
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Pods by phase",
+      "description": "kube_pod_status_phase split by phase. Count metric: Total aggregation at a fixed 1-minute grain (PT1M), so each point is the number of objects in that minute. Coarser grains would sum several minutes.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 50
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_pod_status_phase",
+            "aggregation": "Total",
+            "timeGrain": "PT1M",
+            "dimensionFilters": [
+              {
+                "dimension": "phase",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 25,
+      "type": "timeseries",
+      "title": "Pods by ready condition",
+      "description": "kube_pod_status_ready split by condition. Count metric: Total aggregation at a fixed 1-minute grain (PT1M), so each point is the number of objects in that minute. Coarser grains would sum several minutes.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 50
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_pod_status_ready",
+            "aggregation": "Total",
+            "timeGrain": "PT1M",
+            "dimensionFilters": [
+              {
+                "dimension": "condition",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "ready = {{dimensionvalue}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 26,
+      "type": "timeseries",
+      "title": "Pending / Failed / Unknown pods by namespace",
+      "description": "kube_pod_status_phase filtered to unhealthy phases, split by namespace. Count metric: Total aggregation at a fixed 1-minute grain (PT1M), so each point is the number of objects in that minute. Coarser grains would sum several minutes.",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "kube_pod_status_phase",
+            "aggregation": "Total",
+            "timeGrain": "PT1M",
+            "dimensionFilters": [
+              {
+                "dimension": "phase",
+                "operator": "eq",
+                "filters": [
+                  "Pending",
+                  "Failed",
+                  "Unknown"
+                ]
+              },
+              {
+                "dimension": "namespace",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{namespace}} ({{phase}})",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 27,
+      "type": "row",
+      "title": "Control plane",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 66
+      },
+      "panels": []
+    },
+    {
+      "id": 28,
+      "type": "timeseries",
+      "title": "API server CPU / memory",
+      "description": "Maximum CPU / memory percentage (of the current limit) used by the API server pods.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 67
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "apiserver_cpu_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "CPU"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "apiserver_memory_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "memory"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 29,
+      "type": "timeseries",
+      "title": "etcd CPU / memory / database",
+      "description": "Maximum etcd CPU / memory percentage (of the current limit) and database utilisation across instances.",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 67
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "etcd_cpu_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "CPU"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "etcd_memory_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "memory"
+          }
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "etcd_database_usage_percentage",
+            "aggregation": "Maximum",
+            "timeGrain": "auto",
+            "dimensionFilters": [],
+            "alias": "database"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "API server inflight requests (preview)",
+      "description": "apiserver_current_inflight_requests by request kind (preview metric).",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 67
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "apiserver_current_inflight_requests",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "requestKind",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "API request concurrency (preview)",
+      "description": "apiserver_flowcontrol_executing_seats: API Priority and Fairness seats in use, by priority level (preview metric).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 75
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "apiserver_flowcontrol_executing_seats",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "priority_level",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}",
+            "top": "50"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Pod scheduling rate (preview)",
+      "description": "scheduler_schedule_attempts_rate by result, e.g. scheduled / unschedulable (preview metric).",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 75
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "scheduler_schedule_attempts_rate",
+            "aggregation": "Average",
+            "timeGrain": "auto",
+            "dimensionFilters": [
+              {
+                "dimension": "result",
+                "operator": "eq",
+                "filters": []
+              }
+            ],
+            "alias": "{{dimensionvalue}}"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 33,
+      "type": "row",
+      "title": "Cluster autoscaler (preview)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 83
+      },
+      "panels": []
+    },
+    {
+      "id": 34,
+      "type": "timeseries",
+      "title": "Unschedulable pods / unneeded nodes",
+      "description": "Cluster autoscaler preview metrics (5-minute minimum grain). Empty when the autoscaler is not enabled.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 84
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "cluster_autoscaler_unschedulable_pods_count",
+            "aggregation": "Average",
+            "timeGrain": "PT5M",
+            "dimensionFilters": [],
+            "alias": "unschedulable pods"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "cluster_autoscaler_unneeded_nodes_count",
+            "aggregation": "Average",
+            "timeGrain": "PT5M",
+            "dimensionFilters": [],
+            "alias": "unneeded nodes"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 35,
+      "type": "timeseries",
+      "title": "Autoscaler health / scale-down cooldown",
+      "description": "1 = autoscaler considers the cluster healthy / scale-down is in cooldown. 5-minute minimum grain.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 84
+      },
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$ds"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "cluster_autoscaler_cluster_safe_to_autoscale",
+            "aggregation": "Average",
+            "timeGrain": "PT5M",
+            "dimensionFilters": [],
+            "alias": "safe to autoscale"
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "$ds"
+          },
+          "queryType": "Azure Monitor",
+          "subscription": "$sub",
+          "azureMonitor": {
+            "resources": [
+              {
+                "subscription": "$sub",
+                "resourceGroup": "$rg",
+                "resourceName": "$resource",
+                "metricNamespace": "microsoft.containerservice/managedclusters"
+              }
+            ],
+            "metricNamespace": "microsoft.containerservice/managedclusters",
+            "metricName": "cluster_autoscaler_scale_down_in_cooldown",
+            "aggregation": "Average",
+            "timeGrain": "PT5M",
+            "dimensionFilters": [],
+            "alias": "scale-down in cooldown"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "axisSoftMin": 0
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}

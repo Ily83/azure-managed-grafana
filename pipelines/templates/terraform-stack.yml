@@ -1,0 +1,164 @@
+# Plan stage + gated apply stage for one Terraform stack.
+# Azure DevOps evaluates environment checks (approvals, exclusive lock) when a stage starts, and only once the stage
+# condition is true. With the apply in its own stage, approvers review a finished plan, and an apply that is skipped
+# (no changes, pull request) never asks for approval. Checks are configured on the environment "grafana-<environment>".
+parameters:
+  # Stage IDs become plan_<name> and apply_<name>.
+  - name: name
+    type: string
+  - name: displayName
+    type: string
+  - name: environment
+    type: string
+  - name: serviceConnection
+    type: string
+  - name: stackDirectory
+    type: string
+  - name: stateKey
+    type: string
+  # dependsOn and condition of the plan stage. The apply stage always depends on its own plan stage only.
+  - name: planDependsOn
+    type: object
+  - name: planCondition
+    type: string
+    default: succeeded()
+  # Export a Microsoft Entra token for the Grafana data plane as GRAFANA_AUTH (grafana provider).
+  - name: grafanaAuth
+    type: boolean
+    default: false
+  # Retry terraform plan this many times, 30 s apart, when it fails with 401/403. Right after a platform apply grants
+  # the pipeline identity Grafana Admin, the Grafana data plane can deny it for a few minutes while RBAC propagates.
+  - name: authErrorRetries
+    type: number
+    default: 0
+  # Plans that delete or replace resources fail unless this is true (set when queuing the run, after reading the plan).
+  - name: allowDestroy
+    type: boolean
+    default: false
+
+stages:
+  - stage: plan_${{ parameters.name }}
+    displayName: ${{ parameters.displayName }} - plan
+    dependsOn: ${{ parameters.planDependsOn }}
+    condition: ${{ parameters.planCondition }}
+    jobs:
+      - job: plan
+        displayName: terraform plan
+        steps:
+          - checkout: self
+
+          - template: terraform-install.yml
+
+          # Outputs plan.tf.hasChanges and plan.tf.planArtifact, read by the apply stage and by deploy-grafana.yml.
+          - task: AzureCLI@2
+            name: tf
+            displayName: terraform plan
+            inputs:
+              azureSubscription: ${{ parameters.serviceConnection }}
+              scriptType: bash
+              scriptLocation: inlineScript
+              workingDirectory: $(Build.SourcesDirectory)/${{ parameters.stackDirectory }}
+              inlineScript: |
+                set -euo pipefail
+                export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                if [ "${{ parameters.grafanaAuth }}" = "True" ]; then
+                  GRAFANA_AUTH="$(az account get-access-token --resource https://dashboard.azure.com --query accessToken -o tsv)"
+                  export GRAFANA_AUTH
+                fi
+
+                terraform init -input=false \
+                  -backend-config="storage_account_name=$(backend_storage_account_name)" \
+                  -backend-config="container_name=$(backend_container_name)" \
+                  -backend-config="key=${{ parameters.stateKey }}"
+
+                # -detailed-exitcode: 0 = no changes, 2 = changes, 1 = error. Only errors that look like an authorization
+                # failure are retried; anything else fails at once.
+                plan_log="$(Agent.TempDirectory)/terraform-plan.log"
+                max_attempts=$(( ${{ parameters.authErrorRetries }} + 1 ))
+                attempt=1
+                while true; do
+                  terraform plan -input=false -lock-timeout=5m \
+                    -var-file="env/${{ parameters.environment }}.tfvars" \
+                    -out=tfplan -detailed-exitcode 2>&1 | tee "$plan_log" && exit_code=0 || exit_code=$?
+                  if [ "$exit_code" -ne 1 ]; then break; fi
+                  if [ "$attempt" -ge "$max_attempts" ] || ! grep -Eqi 'unauthori[sz]ed|forbidden|\b40[13]\b' "$plan_log"; then
+                    exit 1
+                  fi
+                  echo "terraform plan was denied (attempt $attempt of $max_attempts), probably Grafana RBAC propagation. Retrying in 30 s."
+                  attempt=$((attempt + 1))
+                  sleep 30
+                done
+
+                # Guard against destructive plans, e.g. importing a workspace whose location or zone redundancy differs from the tfvars.
+                if [ "$exit_code" -eq 2 ]; then
+                  terraform show -json tfplan > tfplan.json
+                  deletes="$(jq -r '.resource_changes[]? | select(.change.actions | index("delete")) | "\(.change.actions | join("/")) \(.address)"' tfplan.json)"
+                  rm -f tfplan.json
+                  if [ -n "$deletes" ]; then
+                    echo "Resources to delete or replace:"
+                    echo "$deletes"
+                    if [ "${{ parameters.allowDestroy }}" != "True" ]; then
+                      echo "##vso[task.logissue type=error]The plan deletes or replaces resources. Review it, then re-run with allowDestroy=true if intended."
+                      exit 1
+                    fi
+                  fi
+                fi
+
+                # Pipeline artifacts can't be overwritten: a re-run of this stage or job publishes under a new name.
+                echo "##vso[task.setvariable variable=planArtifact;isOutput=true]tfplan-${{ parameters.name }}-$(System.StageAttempt)-$(System.JobAttempt)"
+                echo "##vso[task.setvariable variable=hasChanges;isOutput=true]$([ "$exit_code" -eq 2 ] && echo true || echo false)"
+
+          - publish: $(Build.SourcesDirectory)/${{ parameters.stackDirectory }}/tfplan
+            displayName: Publish plan
+            artifact: $(tf.planArtifact)
+            condition: and(succeeded(), eq(variables['tf.hasChanges'], 'true'), ne(variables['Build.Reason'], 'PullRequest'))
+
+  - stage: apply_${{ parameters.name }}
+    displayName: ${{ parameters.displayName }} - apply
+    dependsOn: plan_${{ parameters.name }}
+    # succeeded('<stage>') rather than succeeded(): without arguments it also checks indirect dependencies, and an
+    # earlier stack's apply stage is skipped whenever that stack has no changes.
+    condition: >-
+      and(
+        succeeded('plan_${{ parameters.name }}'),
+        eq(dependencies.plan_${{ parameters.name }}.outputs['plan.tf.hasChanges'], 'true'),
+        ne(variables['Build.Reason'], 'PullRequest')
+      )
+    variables:
+      planArtifact: $[ stageDependencies.plan_${{ parameters.name }}.plan.outputs['tf.planArtifact'] ]
+    jobs:
+      - deployment: apply
+        displayName: terraform apply
+        environment: grafana-${{ parameters.environment }}
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                # An explicit download step also stops the deploy hook from downloading every artifact of the run.
+                - download: current
+                  artifact: $(planArtifact)
+
+                - template: terraform-install.yml
+
+                - task: AzureCLI@2
+                  displayName: terraform apply
+                  inputs:
+                    azureSubscription: ${{ parameters.serviceConnection }}
+                    scriptType: bash
+                    scriptLocation: inlineScript
+                    workingDirectory: $(Build.SourcesDirectory)/${{ parameters.stackDirectory }}
+                    inlineScript: |
+                      set -euo pipefail
+                      export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+                      if [ "${{ parameters.grafanaAuth }}" = "True" ]; then
+                        GRAFANA_AUTH="$(az account get-access-token --resource https://dashboard.azure.com --query accessToken -o tsv)"
+                        export GRAFANA_AUTH
+                      fi
+
+                      terraform init -input=false \
+                        -backend-config="storage_account_name=$(backend_storage_account_name)" \
+                        -backend-config="container_name=$(backend_container_name)" \
+                        -backend-config="key=${{ parameters.stateKey }}"
+                      terraform apply -input=false -lock-timeout=5m "$(Pipeline.Workspace)/$(planArtifact)/tfplan"
